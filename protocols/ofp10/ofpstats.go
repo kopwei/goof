@@ -185,8 +185,8 @@ type OfpQueueStatsReq struct {
 	QueueID uint32 /* All queues if OFPQ_ALL. */
 }
 
-// OfpQueueStats represents the queue stats info
-type OfpQueueStats struct {
+// OfpQueueStatsInfo represents the queue stats info
+type OfpQueueStatsInfo struct {
 	PortNo uint16
 	//uint8_t pad[2];          /* Align to 32-bits. */
 	QueueID   uint32 /* Queue i.d */
