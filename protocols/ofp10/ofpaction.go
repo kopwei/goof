@@ -19,6 +19,21 @@ const (
 	OfpActionVendor       = 0xffff
 )
 
+// ofp_error_msg 'code' values for OFPET_BAD_ACTION.  'data' contains at least
+// the first 64 bytes of the failed request. */
+//enum ofp_bad_action_code {
+const (
+	OfpBadActionCodeBadType       = iota /* Unknown action type. */
+	OfpBadActionCodeBadLen               /* Length problem in actions. */
+	OfpBadActionCodeBadVendor            /* Unknown vendor id specified. */
+	OfpBadActionCodeBadVendorType        /* Unknown action type for vendor id. */
+	OfpBadActionCodeBadOutPort           /* Problem validating output action. */
+	OfpBadActionCodeBadArgument          /* Bad action argument. */
+	OfpBadActionCodeErrPerm              /* Permissions error. */
+	OfpBadActionCodeTooMany              /* Can't handle this many actions. */
+	OfpBadActionCodeBadQueue             /* Problem validating output queue. */
+)
+
 // OfpActionOutput represents the ofp action output
 // Action structure for OFPAT_OUTPUT, which sends packets out 'port'.
 // When the 'port' is the OFPP_CONTROLLER, 'max_len' indicates the max
@@ -100,4 +115,15 @@ type OfpActionHeader struct {
 	   including any padding to make it
 	   64-bit aligned. */
 	//uint8_t pad[4];
+}
+
+// OfpActionEnqueueInfo represents the OFPAT_ENQUEUE action struct: send packets to given queue on port.
+type OfpActionEnqueueInfo struct {
+	Type uint16 /* OFPAT_ENQUEUE. */
+	Len  uint16 /* Len is 16. */
+	Port uint16 /* Port that queue belongs. Should
+	   refer to a valid physical port
+	   (i.e. < OFPP_MAX) or OFPP_IN_PORT. */
+	//uint8_t pad[6];           /* Pad for 64-bit alignment. */
+	QueueID uint32 /* Where to enqueue the packets. */
 }

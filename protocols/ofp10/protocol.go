@@ -70,6 +70,51 @@ const (
 	OfpTypeQueueGetConfigReply   /* Controller/switch message */
 )
 
+// Values for 'type' in ofp_error_message.  These values are immutable: they
+// will not change in future versions of the protocol (although new values may
+// be added).
+//enum ofp_error_type {
+const (
+	OfpErrTypeHelloFailed   = iota /* Hello protocol failed. */
+	OfpErrTypeBadRequest           /* Request was not understood. */
+	OfpErrTypeBadAction            /* Error in action description. */
+	OfpErrTypeFlowModFailed        /* Problem modifying flow entry. */
+	OfpErrTypePortModFailed        /* Port mod request failed. */
+	OfpErrTypeQueueOpFailed        /* Queue operation failed. */
+)
+
+// ofp_error_msg 'code' values for OFPET_HELLO_FAILED.  'data' contains an
+// ASCII text string that may give failure details. */
+//enum ofp_hello_failed_code {
+const (
+	OfpHelloFaildCodeIncompatioble = iota /* No compatible version. */
+	OfpHelloFaildCodeErrPerm              /* Permissions error. */
+)
+
+// ofp_error_msg 'code' values for OFPET_BAD_REQUEST.  'data' contains at least
+// the first 64 bytes of the failed request.
+//enum ofp_bad_request_code {
+const (
+	OfpBadReqCodeBadVersion    = iota /* ofp_header.version not supported. */
+	OfpBadReqCodeBadType              /* ofp_header.type not supported. */
+	OfpBadReqCodeBadStat              /* ofp_stats_request.type not supported. */
+	OfpBadReqCodeBadVendor            /* Vendor not supported (in ofp_vendor_header or ofp_stats_request or ofp_stats_reply). */
+	OfpBadReqCodeBadSubType           /* Vendor subtype not supported. */
+	OfpBadReqCodeErrPerm              /* Permissions error. */
+	OfpBadReqCodeBadLen               /* Wrong request length for type. */
+	OfpBadReqCodeBufferEmpty          /* Specified buffer has already been used. */
+	OfpBadReqCodeBufferUnknown        /* Specified buffer does not exist. */
+)
+
+// ofp_error msg 'code' values for OFPET_QUEUE_OP_FAILED. 'data' contains
+// at least the first 64 bytes of the failed request */
+// enum ofp_queue_op_failed_code {
+const (
+	OfpQueFailedCodeBadPort = iota /* Invalid port (or port does not exist). */
+	OfpQueFailedCodeBadQue         /* Queue does not exist. */
+	OfpQueFailedCodeErrPerm        /* Permissions error. */
+)
+
 // OfpHelloMsg represents the hello message structure
 type OfpHelloMsg struct {
 	Header ofpgeneral.OfpHeader
@@ -94,13 +139,22 @@ type OfpPacketInMsg struct {
 
 // OfpPacketOutMsg reprensents the packet_out message sent by controller
 /* Send packet (controller -> datapath). */
-type OfpPacketOutMsg struct{
-    Header   ofpgeneral.OfpHeader
-    BufferID uint32            /* ID assigned by datapath (-1 if none). */
-    InPort   uint16           /* Packet's input port (OFPP_NONE if none). */
-    ActionsLen uint16         /* Size of action array in bytes. */
-    Actions []OfpActionHeader /* Actions. */
-    /* uint8_t data[0]; */        /* Packet data.  The length is inferred
-                                     from the length field in the header.
-                                     (Only meaningful if buffer_id == -1.) */
+type OfpPacketOutMsg struct {
+	Header     ofpgeneral.OfpHeader
+	BufferID   uint32            /* ID assigned by datapath (-1 if none). */
+	InPort     uint16            /* Packet's input port (OFPP_NONE if none). */
+	ActionsLen uint16            /* Size of action array in bytes. */
+	Actions    []OfpActionHeader /* Actions. */
+	/* uint8_t data[0]; */ /* Packet data.  The length is inferred
+	   from the length field in the header.
+	   (Only meaningful if buffer_id == -1.) */
+}
+
+// OfpErrMsg represents the msg structure of OFPT_ERROR: Error message (datapath -> controller).
+type OfpErrMsg struct {
+	Header ofpgeneral.OfpHeader
+
+	Type uint16
+	Code uint16
+	Data []byte /* Variable-length data.  Interpreted based on the type and code. */
 }

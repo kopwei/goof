@@ -63,6 +63,14 @@ const (
 	OfpPortReasonModify        /* Some attribute of the port has changed. */
 )
 
+// ofp_error_msg 'code' values for OFPET_PORT_MOD_FAILED.  'data' contains
+// at least the first 64 bytes of the failed request. */
+// enum ofp_port_mod_failed_code {
+const (
+	OfpPortModFailedCodeBadPort   = iota /* Specified port does not exist. */
+	OfpPortModFailedCodeBadHwAddr        /* Specified hardware address is wrong. */
+)
+
 // OfpPhysPort represents the physical port structure
 type OfpPhysPort struct {
 	PortNo uint16
