@@ -1,6 +1,10 @@
 package ofp10
 
-import "github.com/kopwei/goof/protocols/ofpgeneral"
+import (
+	"encoding/binary"
+
+	"github.com/kopwei/goof/protocols/ofpgeneral"
+)
 
 const (
 	// Version is the value of version byte in ofp header
@@ -120,6 +124,16 @@ type OfpHelloMsg struct {
 	Header ofpgeneral.OfpHeader
 }
 
+// MarshalBinary converts the hello msg fields into byte array
+func (hello *OfpHelloMsg) MarshalBinary() (data []byte, err error) {
+	return (&hello.Header).MarshalBinary()
+}
+
+// UnmarshalBinary transforms the byte array into hello message data
+func (hello *OfpHelloMsg) UnmarshalBinary(data []byte) error {
+	return (&hello.Header).UnmarshalBinary(data)
+}
+
 // OfpPacketInMsg reprensents the packet_in message received by controller
 /* Packet received on port (datapath -> controller). */
 type OfpPacketInMsg struct {
@@ -135,6 +149,32 @@ type OfpPacketInMsg struct {
 	   field in the header.  Because of padding,
 	   offsetof(struct ofp_packet_in, data) ==
 	   sizeof(struct ofp_packet_in) - 2. */
+}
+
+// MarshalBinary converts the packet in msg fields into byte array
+func (in *OfpPacketInMsg) MarshalBinary() (data []byte, err error) {
+	data = make([]byte, in.TotalLen)
+	headerData, err := (&in.Header).MarshalBinary()
+	copy(data, headerData)
+	binary.BigEndian.PutUint32(data[8:12], in.BufferID)
+	binary.BigEndian.PutUint16(data[12:14], in.TotalLen)
+	binary.BigEndian.PutUint16(data[14:16], in.TotalLen)
+	data[16] = in.Reason
+	copy(data[16:], in.Data)
+	return data, err
+}
+
+// UnmarshalBinary transforms the byte array into packet in message data
+func (in *OfpPacketInMsg) UnmarshalBinary(data []byte) error {
+	if err := (&in.Header).UnmarshalBinary(data); err != nil {
+		return err
+	}
+	in.BufferID = binary.BigEndian.Uint32(data[8:12])
+	in.TotalLen = binary.BigEndian.Uint16(data[12:14])
+	in.InPort = binary.BigEndian.Uint16(data[14:16])
+	in.Reason = data[16]
+	copy(in.Data, data[16:])
+	return nil
 }
 
 // OfpPacketOutMsg reprensents the packet_out message sent by controller
