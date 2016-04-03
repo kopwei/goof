@@ -1,6 +1,10 @@
 package ofp10
 
-import "net"
+import (
+	"encoding/binary"
+	"fmt"
+	"net"
+)
 
 // OFP Action Type
 const (
@@ -115,6 +119,28 @@ type OfpActionHeader struct {
 	   including any padding to make it
 	   64-bit aligned. */
 	//uint8_t pad[4];
+}
+
+// UnmarshalBinary transforms the byte array into header data
+func (ah *OfpActionHeader) UnmarshalBinary(data []byte) error {
+	if len(data) < 4 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	ah.Type = binary.BigEndian.Uint16(data[:2])
+	ah.Len = binary.BigEndian.Uint16(data[2:4])
+
+	return nil
+}
+
+// MarshalBinary converts the header fields into byte array
+func (ah *OfpActionHeader) MarshalBinary() (data []byte, err error) {
+	data = make([]byte, 8)
+	err = nil
+	data[0] = header.Version
+	data[1] = header.Type
+	binary.BigEndian.PutUint16(data[2:4], header.Length)
+	binary.BigEndian.PutUint32(data[4:8], header.Xid)
+	return data, err
 }
 
 // OfpActionEnqueueInfo represents the OFPAT_ENQUEUE action struct: send packets to given queue on port.
