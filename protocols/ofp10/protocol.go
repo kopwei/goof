@@ -158,7 +158,7 @@ func (in *OfpPacketInMsg) MarshalBinary() (data []byte, err error) {
 	copy(data, headerData)
 	binary.BigEndian.PutUint32(data[8:12], in.BufferID)
 	binary.BigEndian.PutUint16(data[12:14], in.TotalLen)
-	binary.BigEndian.PutUint16(data[14:16], in.TotalLen)
+	binary.BigEndian.PutUint16(data[14:16], in.Inport)
 	data[16] = in.Reason
 	copy(data[16:], in.Data)
 	return data, err
@@ -188,6 +188,34 @@ type OfpPacketOutMsg struct {
 	/* uint8_t data[0]; */ /* Packet data.  The length is inferred
 	   from the length field in the header.
 	   (Only meaningful if buffer_id == -1.) */
+}
+
+// MarshalBinary converts the packet out msg fields into byte array
+func (out *OfpPacketOutMsg) MarshalBinary() (data []byte, err error) {
+	data = make([]byte, out.TotalLen)
+	headerData, err := (&out.Header).MarshalBinary()
+	copy(data, headerData)
+	binary.BigEndian.PutUint32(data[8:12], out.BufferID)
+	binary.BigEndian.PutUint16(data[12:14], out.InPort)
+	binary.BigEndian.PutUint16(data[14:16], out.ActionsLen)
+	actionByteIdx := 16
+	for _, action := range out.Actions {
+
+	}
+	return data, err
+}
+
+// UnmarshalBinary transforms the byte array into packet out message data
+func (out *OfpPacketOutMsg) UnmarshalBinary(data []byte) error {
+	if err := (&in.Header).UnmarshalBinary(data); err != nil {
+		return err
+	}
+	in.BufferID = binary.BigEndian.Uint32(data[8:12])
+	in.TotalLen = binary.BigEndian.Uint16(data[12:14])
+	in.InPort = binary.BigEndian.Uint16(data[14:16])
+	in.Reason = data[16]
+	copy(in.Data, data[16:])
+	return nil
 }
 
 // OfpErrMsg represents the msg structure of OFPT_ERROR: Error message (datapath -> controller).

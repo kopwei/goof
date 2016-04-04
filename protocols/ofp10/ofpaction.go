@@ -1,9 +1,12 @@
 package ofp10
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"net"
+
+	"github.com/kopwei/goof/protocols/ofpgeneral"
 )
 
 // OFP Action Type
@@ -50,6 +53,24 @@ type OfpActionOutput struct {
 	MaxLen uint16 /* Max length to send to controller. */
 }
 
+// UnmarshalBinary transforms the byte array into body data
+func (ao *OfpActionOutput) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &ao.Type, &ao.Len, &ao.Port, &ao.MaxLen)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (ao *OfpActionOutput) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, ao.Type, ao.Len, ao.Port, ao.MaxLen); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 // OfpActionVlanVID represents action structure for OFPAT_SET_VLAN_VID.
 // The VLAN id is 12 bits, so we can use the entire 16 bits to indicate
 // special conditions.  All ones is used to match that no VLAN id was
@@ -58,7 +79,25 @@ type OfpActionVlanVID struct {
 	Type    uint16 /* OFPAT_SET_VLAN_VID. */
 	Len     uint16 /* Length is 8. */
 	VlanVID uint16 /* VLAN id. */
-	//uint8_t pad[2];
+	Padding [2]byte
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (avv *OfpActionVlanVID) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &avv.Type, &avv.Len, &avv.VlanVID)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (avv *OfpActionVlanVID) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, avv.Type, avv.Len, avv.VlanVID, avv.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionVlanPCP represents action structure for OFPAT_SET_VLAN_PCP.
@@ -66,15 +105,51 @@ type OfpActionVlanPCP struct {
 	Type    uint16 /* OFPAT_SET_VLAN_PCP. */
 	Len     uint16 /* Length is 8. */
 	VlanPCP uint8  /* VLAN priority. */
-	//uint8_t pad[3];
+	Padding [3]byte
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (avp *OfpActionVlanPCP) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &avp.Type, &avp.Len, &avp.VlanPCP)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (avp *OfpActionVlanPCP) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, avp.Type, avp.Len, avp.VlanPCP, avp.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionDLAddt represents action structure for OFPAT_SET_DL_SRC/DST.
 type OfpActionDLAddt struct {
-	Type   uint16 /* OFPAT_SET_DL_SRC/DST. */
-	Len    uint16 /* Length is 16. */
-	DLAddr net.HardwareAddr
-	//uint8_t pad[6];
+	Type    uint16 /* OFPAT_SET_DL_SRC/DST. */
+	Len     uint16 /* Length is 16. */
+	DLAddr  net.HardwareAddr
+	Padding [6]byte
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (ada *OfpActionDLAddt) UnmarshalBinary(data []byte) error {
+	if len(data) < 16 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &ada.Type, &ada.Len, &ada.DLAddr)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (ada *OfpActionDLAddt) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, ada.Type, ada.Len, ada.DLAddr, ada.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionNWAddt represents Action structure for OFPAT_SET_NW_SRC/DST.
@@ -84,20 +159,74 @@ type OfpActionNWAddt struct {
 	NWAddr net.IP /* IP address. */
 }
 
+// UnmarshalBinary transforms the byte array into body data
+func (ana *OfpActionNWAddt) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &ana.Type, &ana.Len, &ana.NWAddr)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (ana *OfpActionNWAddt) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, ana.Type, ana.Len, ana.NWAddr); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 // OfpActionTPPort represents action structure for OFPAT_SET_TP_SRC/DST.
 type OfpActionTPPort struct {
-	Type   uint16 /* OFPAT_SET_TP_SRC/DST. */
-	Len    uint16 /* Length is 8. */
-	TPPort uint16 /* TCP/UDP port. */
-	//uint8_t pad[2];
+	Type    uint16 /* OFPAT_SET_TP_SRC/DST. */
+	Len     uint16 /* Length is 8. */
+	TPPort  uint16 /* TCP/UDP port. */
+	Padding [2]byte
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (atp *OfpActionTPPort) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &atp.Type, &atp.Len, &atp.TPPort)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (atp *OfpActionTPPort) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, atp.Type, atp.Len, atp.TPPort, atp.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionNWToS represents action structure for OFPAT_SET_NW_TOS.
 type OfpActionNWToS struct {
-	Type  uint16 /* OFPAT_SET_TW_SRC/DST. */
-	Len   uint16 /* Length is 8. */
-	NWTos uint8  /* IP ToS (DSCP field, 6 bits). */
-	//uint8_t pad[3];
+	Type    uint16 /* OFPAT_SET_TW_SRC/DST. */
+	Len     uint16 /* Length is 8. */
+	NWTos   uint8  /* IP ToS (DSCP field, 6 bits). */
+	Padding [3]byte
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (ant *OfpActionNWToS) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &ant.Type, &ant.Len, &ant.NWTos)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (ant *OfpActionNWToS) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, ant.Type, ant.Len, ant.NWTos, ant.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionVendorHeader represents action header for OFPAT_VENDOR.
@@ -118,7 +247,7 @@ type OfpActionHeader struct {
 	   header.  This is the length of action,
 	   including any padding to make it
 	   64-bit aligned. */
-	//uint8_t pad[4];
+	Padding [4]byte
 }
 
 // UnmarshalBinary transforms the byte array into header data
@@ -126,21 +255,17 @@ func (ah *OfpActionHeader) UnmarshalBinary(data []byte) error {
 	if len(data) < 4 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
-	ah.Type = binary.BigEndian.Uint16(data[:2])
-	ah.Len = binary.BigEndian.Uint16(data[2:4])
-
-	return nil
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &ah.Type, &ah.Len)
 }
 
 // MarshalBinary converts the header fields into byte array
 func (ah *OfpActionHeader) MarshalBinary() (data []byte, err error) {
-	data = make([]byte, 8)
-	err = nil
-	data[0] = header.Version
-	data[1] = header.Type
-	binary.BigEndian.PutUint16(data[2:4], header.Length)
-	binary.BigEndian.PutUint32(data[4:8], header.Xid)
-	return data, err
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, ah.Type, ah.Len, ah.Padding); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpActionEnqueueInfo represents the OFPAT_ENQUEUE action struct: send packets to given queue on port.
@@ -150,6 +275,102 @@ type OfpActionEnqueueInfo struct {
 	Port uint16 /* Port that queue belongs. Should
 	   refer to a valid physical port
 	   (i.e. < OFPP_MAX) or OFPP_IN_PORT. */
-	//uint8_t pad[6];           /* Pad for 64-bit alignment. */
-	QueueID uint32 /* Where to enqueue the packets. */
+	Padding [6]byte /* Pad for 64-bit alignment. */
+	QueueID uint32  /* Where to enqueue the packets. */
 }
+
+// UnmarshalBinary transforms the byte array into body data
+func (aei *OfpActionEnqueueInfo) UnmarshalBinary(data []byte) error {
+	if len(data) < 16 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &aei.Type, &aei.Len, &aei.Port, &aei.Padding, &aei.QueueID)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (aei *OfpActionEnqueueInfo) MarshalBinary() (data []byte, err error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, aei.Type, aei.Len, aei.Port, aei.Padding, aei.QueueID); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// OfpActionMsg represents the body structure of the action msg sent to datapath
+type OfpActionMsg struct {
+	Header OfpActionHeader
+	Body   ofpgeneral.OfpMessage
+}
+
+// UnmarshalBinary transforms the byte array into msg data
+func (oam *OfpActionMsg) UnmarshalBinary(data []byte) error {
+	if err := (&oam.Header).UnmarshalBinary(data); err != nil {
+		return err
+	}
+	dataStartIdx := 4
+	actionType := binary.BigEndian.Uint16(data[dataStartIdx : dataStartIdx+2])
+	switch actionType {
+	case OfpActionOutputToPort:
+		oam.Body = &OfpActionOutput{}
+	case OfpActionSetVlanVID:
+		oam.Body = &OfpActionVlanVID{}
+	case OfpActionSetVlanPCP:
+		oam.Body = &OfpActionVlanPCP{}
+	case OfpActionSetDLSrc:
+		oam.Body = &OfpActionDLAddt{}
+	case OfpActionSetDLDst:
+		oam.Body = &OfpActionDLAddt{}
+	case OfpActionSetNWSrc:
+		oam.Body = &OfpActionNWAddt{}
+	case OfpActionSetNWDst:
+		oam.Body = &OfpActionNWAddt{}
+	case OfpActionSetNWToS:
+		oam.Body = &OfpActionNWToS{}
+	case OfpActionSetTPSrc:
+		oam.Body = &OfpActionTPPort{}
+	case OfpActionSetTPDst:
+		oam.Body = &OfpActionTPPort{}
+	case OfpActionEnqueue:
+		oam.Body = &OfpActionEnqueueInfo{}
+	}
+	oam.Body.UnmarshalBinary(data[dataStartIdx:])
+	return nil
+}
+
+/*
+// UnmarshalBinary transforms the byte array into msg data
+func (oam *OfpActionMsg) MarshalBinary() (data []byte, err error) {
+	if err := (&oam.Header).UnmarshalBinary(data); err != nil {
+		return err
+	}
+	dataStartIdx := 4
+	actionType := binary.BigEndian.Uint16(data[dataStartIdx : dataStartIdx+2])
+	switch actionType {
+	case OfpActionOutputToPort:
+		oam.Body = &OfpActionOutput{}
+	case OfpActionSetVlanVID:
+		oam.Body = &OfpActionVlanVID{}
+	case OfpActionSetVlanPCP:
+		oam.Body = &OfpActionVlanPCP{}
+	case OfpActionSetDLSrc:
+		oam.Body = &OfpActionDLAddt{}
+	case OfpActionSetDLDst:
+		oam.Body = &OfpActionDLAddt{}
+	case OfpActionSetNWSrc:
+		oam.Body = &OfpActionNWAddt{}
+	case OfpActionSetNWDst:
+		oam.Body = &OfpActionNWAddt{}
+	case OfpActionSetNWToS:
+		oam.Body = &OfpActionNWToS{}
+	case OfpActionSetTPSrc:
+		oam.Body = &OfpActionTPPort{}
+	case OfpActionSetTPDst:
+		oam.Body = &OfpActionTPPort{}
+	case OfpActionEnqueue:
+		oam.Body = &OfpActionEnqueueInfo{}
+	}
+	oam.Body.UnmarshalBinary(data[dataStartIdx:])
+	return nil
+}
+*/
