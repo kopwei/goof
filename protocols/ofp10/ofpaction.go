@@ -338,39 +338,18 @@ func (oam *OfpActionMsg) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-/*
-// UnmarshalBinary transforms the byte array into msg data
-func (oam *OfpActionMsg) MarshalBinary() (data []byte, err error) {
-	if err := (&oam.Header).UnmarshalBinary(data); err != nil {
-		return err
+// MarshalBinary transforms the msg data into byte array
+func (oam *OfpActionMsg) MarshalBinary() ([]byte, error) {
+	data := make([]byte, oam.Header.Len)
+	headerData, err := oam.Header.MarshalBinary()
+	if err != nil {
+		return nil, err
 	}
-	dataStartIdx := 4
-	actionType := binary.BigEndian.Uint16(data[dataStartIdx : dataStartIdx+2])
-	switch actionType {
-	case OfpActionOutputToPort:
-		oam.Body = &OfpActionOutput{}
-	case OfpActionSetVlanVID:
-		oam.Body = &OfpActionVlanVID{}
-	case OfpActionSetVlanPCP:
-		oam.Body = &OfpActionVlanPCP{}
-	case OfpActionSetDLSrc:
-		oam.Body = &OfpActionDLAddt{}
-	case OfpActionSetDLDst:
-		oam.Body = &OfpActionDLAddt{}
-	case OfpActionSetNWSrc:
-		oam.Body = &OfpActionNWAddt{}
-	case OfpActionSetNWDst:
-		oam.Body = &OfpActionNWAddt{}
-	case OfpActionSetNWToS:
-		oam.Body = &OfpActionNWToS{}
-	case OfpActionSetTPSrc:
-		oam.Body = &OfpActionTPPort{}
-	case OfpActionSetTPDst:
-		oam.Body = &OfpActionTPPort{}
-	case OfpActionEnqueue:
-		oam.Body = &OfpActionEnqueueInfo{}
+	copy(data, headerData)
+	bodyData, err := oam.Body.MarshalBinary()
+	if err != nil {
+		return nil, err
 	}
-	oam.Body.UnmarshalBinary(data[dataStartIdx:])
-	return nil
+	copy(data[4:], bodyData)
+	return data, nil
 }
-*/
