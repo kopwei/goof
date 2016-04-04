@@ -1,6 +1,8 @@
 package ofp10
 
 import (
+	"bytes"
+	"fmt"
 	"net"
 
 	"github.com/kopwei/goof/protocols/ofpgeneral"
@@ -84,16 +86,71 @@ type OfpMatch struct {
 	DLDst     net.HardwareAddr /* Ethernet destination address. */
 	DLVlan    uint16           /* Input VLAN id. */
 	DLVlanPCP uint8            /* Input VLAN priority. */
-	//uint8_t pad1[1];           /* Align to 64-bits */
-	DLType  uint16 /* Ethernet frame type. */
-	NWToS   uint8  /* IP ToS (actually DSCP field, 6 bits). */
-	NWProto uint8  /* IP protocol or lower 8 bits of
+	Padding1  uint8            /* Align to 64-bits */
+	DLType    uint16           /* Ethernet frame type. */
+	NWToS     uint8            /* IP ToS (actually DSCP field, 6 bits). */
+	NWProto   uint8            /* IP protocol or lower 8 bits of
 	 * ARP opcode. */
-	//uint8_t pad2[2];           /* Align to 64-bits */
-	NWSrc net.IP /* IP source address. */
-	NWDst net.IP /* IP destination address. */
-	TPSrc uint16 /* TCP/UDP source port. */
-	TPDst uint16 /* TCP/UDP destination port. */
+	Padding2 [2]byte /* Align to 64-bits */
+	NWSrc    net.IP  /* IP source address. */
+	NWDst    net.IP  /* IP destination address. */
+	TPSrc    uint16  /* TCP/UDP source port. */
+	TPDst    uint16  /* TCP/UDP destination port. */
+}
+
+// UnmarshalBinary transforms the byte array into body data
+func (om *OfpMatch) UnmarshalBinary(data []byte) error {
+	if len(data) < 40 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	err := ofpgeneral.UnMarshalFields(buf, &om.Wildcards, &om.InPort)
+	if err != nil {
+		return err
+	}
+	om.DLSrc = data[6:12]
+	om.DLDst = data[12:18]
+	buf = bytes.NewReader(data[18:])
+	err = ofpgeneral.UnMarshalFields(buf, &om.DLVlan, &om.DLVlanPCP, &om.Padding1, &om.DLType,
+		&om.NWToS, &om.NWProto, &om.Padding2)
+	if err != nil {
+		return err
+	}
+	om.NWSrc = data[28:32]
+	om.NWDst = data[32:36]
+	buf = bytes.NewReader(data[36:])
+	err = ofpgeneral.UnMarshalFields(buf, &om.TPSrc, &om.TPDst)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalBinary converts the header fields into byte array
+func (om *OfpMatch) MarshalBinary() ([]byte, error) {
+	data := make([]byte, 40)
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, om.Wildcards, om.InPort); err != nil {
+		return nil, err
+	}
+	copy(data, buf.Bytes())
+	copy(data[6:12], om.DLSrc)
+	copy(data[12:18], om.DLDst)
+	buf = new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, om.DLVlan, om.DLVlanPCP, om.Padding1, om.DLType,
+		om.NWToS, om.NWProto, om.Padding2); err != nil {
+		return nil, err
+	}
+	copy(data[18:28], buf.Bytes())
+	copy(data[28:32], om.NWSrc)
+	copy(data[32:36], om.NWDst)
+
+	buf = new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, om.TPSrc, om.TPDst); err != nil {
+		return nil, err
+	}
+	copy(data[36:], buf.Bytes())
+	return data, nil
 }
 
 // OfpModFlowMsg represents the structure of flow setup and teardown (controller -> datapath).
@@ -113,10 +170,68 @@ type OfpModFlowMsg struct {
 	   matching entries to include this as an
 	   output port.  A value of OFPP_NONE
 	   indicates no restriction. */
-	Flags   uint16            /* One of OFPFF_*. */
-	Actions []OfpActionHeader /* The action length is inferred
+	Flags   uint16         /* One of OFPFF_*. */
+	Actions []OfpActionMsg /* The action length is inferred
 	   from the length field in the
 	   header. */
+}
+
+// MarshalBinary converts the packet out msg fields into byte array
+func (mfm *OfpModFlowMsg) MarshalBinary() ([]byte, error) {
+	data := make([]byte, mfm.Header.Length)
+	headerData, err := (&mfm.Header).MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	copy(data, headerData)
+	matchData, err := (&mfm.Match).MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	copy(data[4:], matchData)
+	buf := new(bytes.Buffer)
+	err = ofpgeneral.MarshalFields(buf, mfm.Command, mfm.IdleTimeout,
+		mfm.HardTimeout, mfm.Priority, mfm.BufferID, mfm.OutPort, mfm.Flags)
+	if err != nil {
+		return nil, err
+	}
+	copy(data[44:], buf.Bytes())
+	actionByteIdx := uint16(68)
+	for _, action := range mfm.Actions {
+		actionData, err := action.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		copy(data[actionByteIdx:actionByteIdx+action.Header.Len], actionData)
+		actionByteIdx = actionByteIdx + action.Header.Len
+	}
+	return data, err
+}
+
+// UnmarshalBinary transforms the byte array into packet out message data
+func (mfm *OfpModFlowMsg) UnmarshalBinary(data []byte) error {
+	// The decoding is not needed since this message is only received by datapath
+	/*
+		if err := (&mfm.Header).UnmarshalBinary(data); err != nil {
+			return err
+		}
+		if err := (&mfm.Match).UnmarshalBinary(data[4:]); err != nil {
+			return err
+		}
+		buf := bytes.NewReader(data[44:68])
+		if err := ofpgeneral.UnMarshalFields(buf, &mfm.Command, &mfm.IdleTimeout,
+			&mfm.HardTimeout, &mfm.Priority, &mfm.BufferID, &mfm.OutPort, &mfm.Flags); err != nil {
+			return err
+		}
+		actionByteIdx := uint16(68)
+		for i := uint16(0); i < mfm.ActionsLen; i++ {
+			if err := mfm.Actions[i].UnmarshalBinary(data[actionByteIdx:]); err != nil {
+				return err
+			}
+			actionByteIdx += mfm.Actions[i].Header.Len
+		}
+	*/
+	return nil
 }
 
 // OfpFlowRemovedMsg represents the msg structure of flow removed (datapath -> controller).
@@ -136,4 +251,45 @@ type OfpFlowRemovedMsg struct {
 	//uint8_t pad2[2];          /* Align to 64-bits. */
 	PacketCount uint64
 	ByteCount   uint64
+}
+
+// UnmarshalBinary transforms the byte array into header data
+func (frm *OfpFlowRemovedMsg) UnmarshalBinary(data []byte) error {
+	if len(data) < 82 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	if err := (&frm.Header).UnmarshalBinary(data); err != nil {
+		return err
+	}
+	if err := (&frm.Match).UnmarshalBinary(data[4:]); err != nil {
+		return err
+	}
+	buf := bytes.NewReader(data[44:])
+	if err := ofpgeneral.UnMarshalFields(buf, &frm.Cookie, &frm.Priority, &frm.Reason, &frm.DurationSec,
+		&frm.DurationNanoSec, &frm.IdleTimeout, &frm.PacketCount, &frm.ByteCount); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalBinary converts the header fields into byte array
+func (frm *OfpFlowRemovedMsg) MarshalBinary() ([]byte, error) {
+	data := make([]byte, frm.Header.Length)
+	headerData, err := (&frm.Header).MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	copy(data, headerData)
+	matchData, err := (&frm.Match).MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	copy(data[4:], matchData)
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, frm.Cookie, frm.Priority, frm.Reason, frm.DurationSec,
+		frm.DurationNanoSec, frm.IdleTimeout, frm.PacketCount, frm.ByteCount); err != nil {
+		return nil, err
+	}
+	copy(data[44:], buf.Bytes())
+	return data, nil
 }

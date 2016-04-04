@@ -63,7 +63,7 @@ func (ao *OfpActionOutput) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (ao *OfpActionOutput) MarshalBinary() (data []byte, err error) {
+func (ao *OfpActionOutput) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, ao.Type, ao.Len, ao.Port, ao.MaxLen); err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (avv *OfpActionVlanVID) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (avv *OfpActionVlanVID) MarshalBinary() (data []byte, err error) {
+func (avv *OfpActionVlanVID) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, avv.Type, avv.Len, avv.VlanVID, avv.Padding); err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (avp *OfpActionVlanPCP) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (avp *OfpActionVlanPCP) MarshalBinary() (data []byte, err error) {
+func (avp *OfpActionVlanPCP) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, avp.Type, avp.Len, avp.VlanPCP, avp.Padding); err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (ada *OfpActionDLAddt) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (ada *OfpActionDLAddt) MarshalBinary() (data []byte, err error) {
+func (ada *OfpActionDLAddt) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, ada.Type, ada.Len, ada.DLAddr, ada.Padding); err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func (ana *OfpActionNWAddt) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (ana *OfpActionNWAddt) MarshalBinary() (data []byte, err error) {
+func (ana *OfpActionNWAddt) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, ana.Type, ana.Len, ana.NWAddr); err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (atp *OfpActionTPPort) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (atp *OfpActionTPPort) MarshalBinary() (data []byte, err error) {
+func (atp *OfpActionTPPort) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, atp.Type, atp.Len, atp.TPPort, atp.Padding); err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func (ant *OfpActionNWToS) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (ant *OfpActionNWToS) MarshalBinary() (data []byte, err error) {
+func (ant *OfpActionNWToS) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, ant.Type, ant.Len, ant.NWTos, ant.Padding); err != nil {
 		return nil, err
@@ -260,7 +260,7 @@ func (ah *OfpActionHeader) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (ah *OfpActionHeader) MarshalBinary() (data []byte, err error) {
+func (ah *OfpActionHeader) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, ah.Type, ah.Len, ah.Padding); err != nil {
 		return nil, err
@@ -289,7 +289,7 @@ func (aei *OfpActionEnqueueInfo) UnmarshalBinary(data []byte) error {
 }
 
 // MarshalBinary converts the header fields into byte array
-func (aei *OfpActionEnqueueInfo) MarshalBinary() (data []byte, err error) {
+func (aei *OfpActionEnqueueInfo) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := ofpgeneral.MarshalFields(buf, aei.Type, aei.Len, aei.Port, aei.Padding, aei.QueueID); err != nil {
 		return nil, err
