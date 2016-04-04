@@ -140,16 +140,24 @@ func (ada *OfpActionDLAddt) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 	buf := bytes.NewReader(data)
-	return ofpgeneral.UnMarshalFields(buf, &ada.Type, &ada.Len, &ada.DLAddr)
+	if err := ofpgeneral.UnMarshalFields(buf, &ada.Type, &ada.Len); err != nil {
+		return err
+	}
+	ada.DLAddr = make([]byte, 6)
+	copy(ada.DLAddr, data[4:])
+	return nil
 }
 
 // MarshalBinary converts the header fields into byte array
 func (ada *OfpActionDLAddt) MarshalBinary() ([]byte, error) {
+	data := make([]byte, 16)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, ada.Type, ada.Len, ada.DLAddr, ada.Padding); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, ada.Type, ada.Len); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	copy(data, buf.Bytes())
+	copy(data[4:], ada.DLAddr)
+	return data, nil
 }
 
 // OfpActionNWAddt represents Action structure for OFPAT_SET_NW_SRC/DST.
@@ -165,16 +173,24 @@ func (ana *OfpActionNWAddt) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 	buf := bytes.NewReader(data)
-	return ofpgeneral.UnMarshalFields(buf, &ana.Type, &ana.Len, &ana.NWAddr)
+	if err := ofpgeneral.UnMarshalFields(buf, &ana.Type, &ana.Len); err != nil {
+		return err
+	}
+	ana.NWAddr = make([]byte, 4)
+	copy(ana.NWAddr, data[4:])
+	return nil
 }
 
 // MarshalBinary converts the header fields into byte array
 func (ana *OfpActionNWAddt) MarshalBinary() ([]byte, error) {
+	data := make([]byte, 8)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, ana.Type, ana.Len, ana.NWAddr); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, ana.Type, ana.Len); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	copy(data, buf.Bytes())
+	copy(data[4:], ana.NWAddr)
+	return data, nil
 }
 
 // OfpActionTPPort represents action structure for OFPAT_SET_TP_SRC/DST.

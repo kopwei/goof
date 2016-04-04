@@ -125,7 +125,7 @@ type OfpHelloMsg struct {
 }
 
 // MarshalBinary converts the hello msg fields into byte array
-func (hello *OfpHelloMsg) MarshalBinary() (data []byte, err error) {
+func (hello *OfpHelloMsg) MarshalBinary() ([]byte, error) {
 	return (&hello.Header).MarshalBinary()
 }
 
@@ -152,8 +152,8 @@ type OfpPacketInMsg struct {
 }
 
 // MarshalBinary converts the packet in msg fields into byte array
-func (in *OfpPacketInMsg) MarshalBinary() (data []byte, err error) {
-	data = make([]byte, in.Header.Length)
+func (in *OfpPacketInMsg) MarshalBinary() ([]byte, error) {
+	data := make([]byte, in.Header.Length)
 	headerData, err := (&in.Header).MarshalBinary()
 	copy(data, headerData)
 	buf := new(bytes.Buffer)

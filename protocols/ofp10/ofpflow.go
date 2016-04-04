@@ -108,16 +108,20 @@ func (om *OfpMatch) UnmarshalBinary(data []byte) error {
 	if err != nil {
 		return err
 	}
-	om.DLSrc = data[6:12]
-	om.DLDst = data[12:18]
+	om.DLSrc = make([]byte, 6)
+	copy(om.DLSrc, data[6:12])
+	om.DLDst = make([]byte, 6)
+	copy(om.DLDst, data[12:18])
 	buf = bytes.NewReader(data[18:])
 	err = ofpgeneral.UnMarshalFields(buf, &om.DLVlan, &om.DLVlanPCP, &om.Padding1, &om.DLType,
 		&om.NWToS, &om.NWProto, &om.Padding2)
 	if err != nil {
 		return err
 	}
-	om.NWSrc = data[28:32]
-	om.NWDst = data[32:36]
+	om.NWSrc = make([]byte, 4)
+	copy(om.NWSrc, data[28:32])
+	om.NWDst = make([]byte, 4)
+	copy(om.NWDst, data[32:36])
 	buf = bytes.NewReader(data[36:])
 	err = ofpgeneral.UnMarshalFields(buf, &om.TPSrc, &om.TPDst)
 	if err != nil {
