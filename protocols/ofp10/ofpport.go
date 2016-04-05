@@ -77,7 +77,7 @@ const (
 type OfpPhysPort struct {
 	PortNo uint16
 	HwAddr net.HardwareAddr
-	Name   string
+	Name   []byte
 	config uint32 /* Bitmap of OFPPC_* flags. */
 	state  uint32 /* Bitmap of OFPPS_* flags. *
 
@@ -95,40 +95,20 @@ func (pp *OfpPhysPort) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 	buf := bytes.NewReader(data)
-	err := ofpgeneral.UnMarshalFields(buf, &pp.PortNo)
-	if err != nil {
-		return err
-	}
-	pp.HwAddr = data[2:8]
-	n := bytes.IndexByte(data[8:24], 0)
-	pp.Name = string(data[8:n])
-	buf = bytes.NewReader(data[24:])
-	err = ofpgeneral.UnMarshalFields(buf, &pp.config, &pp.state, &pp.Curr, &pp.Advertised,
-		&pp.Supported, &pp.Peer)
-	if err != nil {
-		return err
-	}
-	return nil
+	pp.HwAddr = make([]byte, 6)
+	pp.Name = make([]byte, 16)
+	return ofpgeneral.UnMarshalFields(buf, &pp.PortNo, &pp.HwAddr, &pp.Name, &pp.config,
+		&pp.state, &pp.Curr, &pp.Advertised, &pp.Supported, &pp.Peer)
 }
 
 // MarshalBinary converts the header fields into byte array
 func (pp *OfpPhysPort) MarshalBinary() ([]byte, error) {
-	data := make([]byte, 64)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, pp.PortNo); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, pp.PortNo, pp.HwAddr, pp.Name, pp.config,
+		pp.state, pp.Curr, pp.Advertised, pp.Supported, pp.Peer); err != nil {
 		return nil, err
 	}
-	copy(data, buf.Bytes())
-	copy(data[2:8], pp.HwAddr)
-	copy(data[8:], []byte(pp.Name))
-	buf = new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, pp.config, pp.state, pp.Curr, pp.Advertised,
-		pp.Supported, pp.Peer); err != nil {
-		return nil, err
-	}
-	copy(data[24:], buf.Bytes())
-
-	return data, nil
+	return buf.Bytes(), nil
 }
 
 // OfpPortModMsg represents the message layout of a port modification message
@@ -154,42 +134,19 @@ func (pmm *OfpPortModMsg) UnmarshalBinary(data []byte) error {
 	if len(data) < 28 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
-	if err := (&pmm.Header).UnmarshalBinary(data); err != nil {
-		return err
-	}
-	buf := bytes.NewReader(data[4:])
-	if err := ofpgeneral.UnMarshalFields(buf, &pmm.PortNo); err != nil {
-		return err
-	}
-	pmm.HwAddr = make([]byte, 6)
-	copy(pmm.HwAddr, data[6:12])
-	buf = bytes.NewReader(data[12:])
-	if err := ofpgeneral.UnMarshalFields(buf, &pmm.Config, &pmm.Mask, &pmm.Advertise); err != nil {
-		return err
-	}
-	return nil
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &pmm.Header, &pmm.PortNo, pmm.HwAddr,
+		&pmm.Config, &pmm.Mask, &pmm.Advertise)
 }
 
 // MarshalBinary converts the header fields into byte array
 func (pmm *OfpPortModMsg) MarshalBinary() ([]byte, error) {
-	data := make([]byte, pmm.Header.Length)
-	headerData, err := (&pmm.Header).MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	copy(data, headerData)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, pmm.PortNo); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, pmm.Header, pmm.PortNo, pmm.HwAddr,
+		pmm.Config, pmm.Mask, pmm.Advertise); err != nil {
 		return nil, err
 	}
-	copy(data[4:], buf.Bytes())
-	copy(data[6:12], pmm.HwAddr)
-	buf = new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, pmm.Config, pmm.Mask, pmm.Advertise); err != nil {
-		return nil, err
-	}
-	copy(data[12:], buf.Bytes())
-	return data, nil
+	return buf.Bytes(), nil
 }
 
 // OfpPortStatusMsg represents the port status msg structure
@@ -206,36 +163,16 @@ func (psm *OfpPortStatusMsg) UnmarshalBinary(data []byte) error {
 	if len(data) < 40 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
-	if err := (&psm.Header).UnmarshalBinary(data); err != nil {
-		return err
-	}
-	buf := bytes.NewReader(data[4:])
-	if err := ofpgeneral.UnMarshalFields(buf, &psm.Reason); err != nil {
-		return err
-	}
-	if err := (&psm.Desc).UnmarshalBinary(data[12:]); err != nil {
-		return err
-	}
-	return nil
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &psm.Header, &psm.Reason, &psm.Padding,
+		&psm.Desc)
 }
 
 // MarshalBinary converts the header fields into byte array
 func (psm *OfpPortStatusMsg) MarshalBinary() ([]byte, error) {
-	data := make([]byte, psm.Header.Length)
-	headerData, err := (&psm.Header).MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	copy(data, headerData)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, psm.Reason, psm.Padding); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, psm.Header, psm.Reason, psm.Padding, psm.Desc); err != nil {
 		return nil, err
 	}
-	copy(data[4:], buf.Bytes())
-	descData, err := (&psm.Desc).MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	copy(data, descData)
-	return data, nil
+	return buf.Bytes(), nil
 }

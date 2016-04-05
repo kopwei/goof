@@ -103,58 +103,25 @@ func (om *OfpMatch) UnmarshalBinary(data []byte) error {
 	if len(data) < 40 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
-	buf := bytes.NewReader(data)
-	err := ofpgeneral.UnMarshalFields(buf, &om.Wildcards, &om.InPort)
-	if err != nil {
-		return err
-	}
 	om.DLSrc = make([]byte, 6)
-	copy(om.DLSrc, data[6:12])
 	om.DLDst = make([]byte, 6)
-	copy(om.DLDst, data[12:18])
-	buf = bytes.NewReader(data[18:])
-	err = ofpgeneral.UnMarshalFields(buf, &om.DLVlan, &om.DLVlanPCP, &om.Padding1, &om.DLType,
-		&om.NWToS, &om.NWProto, &om.Padding2)
-	if err != nil {
-		return err
-	}
 	om.NWSrc = make([]byte, 4)
-	copy(om.NWSrc, data[28:32])
 	om.NWDst = make([]byte, 4)
-	copy(om.NWDst, data[32:36])
-	buf = bytes.NewReader(data[36:])
-	err = ofpgeneral.UnMarshalFields(buf, &om.TPSrc, &om.TPDst)
-	if err != nil {
-		return err
-	}
-	return nil
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &om.Wildcards, &om.InPort, &om.DLSrc, &om.DLDst,
+		&om.DLVlan, &om.DLVlanPCP, &om.Padding1, &om.DLType, &om.NWToS, &om.NWProto,
+		&om.Padding2, &om.NWSrc, &om.NWDst, &om.TPSrc, &om.TPDst)
 }
 
 // MarshalBinary converts the header fields into byte array
 func (om *OfpMatch) MarshalBinary() ([]byte, error) {
-	data := make([]byte, 40)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, om.Wildcards, om.InPort); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, om.Wildcards, om.InPort, om.DLSrc, om.DLDst,
+		om.DLVlan, om.DLVlanPCP, om.Padding1, om.DLType, om.NWToS, om.NWProto, om.Padding2,
+		om.NWSrc, om.NWDst, om.TPSrc, om.TPDst); err != nil {
 		return nil, err
 	}
-	copy(data, buf.Bytes())
-	copy(data[6:12], om.DLSrc)
-	copy(data[12:18], om.DLDst)
-	buf = new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, om.DLVlan, om.DLVlanPCP, om.Padding1, om.DLType,
-		om.NWToS, om.NWProto, om.Padding2); err != nil {
-		return nil, err
-	}
-	copy(data[18:28], buf.Bytes())
-	copy(data[28:32], om.NWSrc)
-	copy(data[32:36], om.NWDst)
-
-	buf = new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, om.TPSrc, om.TPDst); err != nil {
-		return nil, err
-	}
-	copy(data[36:], buf.Bytes())
-	return data, nil
+	return buf.Bytes(), nil
 }
 
 // OfpModFlowMsg represents the structure of flow setup and teardown (controller -> datapath).
@@ -262,15 +229,11 @@ func (frm *OfpFlowRemovedMsg) UnmarshalBinary(data []byte) error {
 	if len(data) < 82 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
-	if err := (&frm.Header).UnmarshalBinary(data); err != nil {
-		return err
-	}
-	if err := (&frm.Match).UnmarshalBinary(data[4:]); err != nil {
-		return err
-	}
-	buf := bytes.NewReader(data[44:])
-	if err := ofpgeneral.UnMarshalFields(buf, &frm.Cookie, &frm.Priority, &frm.Reason, &frm.DurationSec,
-		&frm.DurationNanoSec, &frm.IdleTimeout, &frm.PacketCount, &frm.ByteCount); err != nil {
+
+	buf := bytes.NewReader(data)
+	if err := ofpgeneral.UnMarshalFields(buf, &frm.Header, &frm.Match, &frm.Cookie, &frm.Priority,
+		&frm.Reason, &frm.DurationSec, &frm.DurationNanoSec, &frm.IdleTimeout, &frm.PacketCount,
+		&frm.ByteCount); err != nil {
 		return err
 	}
 	return nil
@@ -278,22 +241,11 @@ func (frm *OfpFlowRemovedMsg) UnmarshalBinary(data []byte) error {
 
 // MarshalBinary converts the header fields into byte array
 func (frm *OfpFlowRemovedMsg) MarshalBinary() ([]byte, error) {
-	data := make([]byte, frm.Header.Length)
-	headerData, err := (&frm.Header).MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	copy(data, headerData)
-	matchData, err := (&frm.Match).MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	copy(data[4:], matchData)
 	buf := new(bytes.Buffer)
-	if err := ofpgeneral.MarshalFields(buf, frm.Cookie, frm.Priority, frm.Reason, frm.DurationSec,
-		frm.DurationNanoSec, frm.IdleTimeout, frm.PacketCount, frm.ByteCount); err != nil {
+	if err := ofpgeneral.MarshalFields(buf, frm.Header, frm.Match, frm.Cookie, frm.Priority,
+		frm.Reason, frm.DurationSec, frm.DurationNanoSec, frm.IdleTimeout, frm.PacketCount,
+		frm.ByteCount); err != nil {
 		return nil, err
 	}
-	copy(data[44:], buf.Bytes())
-	return data, nil
+	return buf.Bytes(), nil
 }

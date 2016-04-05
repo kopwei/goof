@@ -80,24 +80,24 @@ type OfpDescStats struct {
 type OfpFlowStatsReq struct {
 	Match   OfpMatch // Fields to match.
 	TableID uint8    //  ID of table to read (from ofp_table_stats), 0xff for all tables or 0xfe for emergency.
-	//uint8_t pad;              /* Align to 32 bits. */
-	OutPort uint16 // Require matching entries to include this as an output port.  A value of OFPP_NONE indicates no restriction.
+	Padding byte     /* Align to 32 bits. */
+	OutPort uint16   // Require matching entries to include this as an output port.  A value of OFPP_NONE indicates no restriction.
 }
 
 // OfpFlowStats represents the structure body of reply to OFPST_FLOW request.
 type OfpFlowStats struct {
-	Length  uint16 /* Length of this entry. */
-	TableID uint8  /* ID of table flow came from. */
-	//uint8_t pad;
+	Length          uint16 /* Length of this entry. */
+	TableID         uint8  /* ID of table flow came from. */
+	Padding1        byte
 	Match           OfpMatch /* Description of fields. */
 	DurationSec     uint32   /* Time flow has been alive in seconds. */
 	DurationNanoSec uint32   /* Time flow has been alive in nanoseconds beyond
 	   duration_sec. */
 	Priority uint16 /* Priority of the entry. Only meaningful
 	   when this is not an exact-match entry. */
-	IdleTimeout uint16 /* Number of seconds idle before expiration. */
-	HardTimeout uint16 /* Number of seconds before expiration. */
-	//uint8_t pad2[6];          /* Align to 64-bits. */
+	IdleTimeout uint16            /* Number of seconds idle before expiration. */
+	HardTimeout uint16            /* Number of seconds before expiration. */
+	Padding2    [6]byte           /* Align to 64-bits. */
 	Cookie      uint64            /* Opaque controller-issued identifier. */
 	PacketCount uint64            /* Number of packets in flow. */
 	ByteCount   uint64            /* Number of bytes in flow. */
@@ -108,23 +108,23 @@ type OfpFlowStats struct {
 type OfpAggStatsRequest struct {
 	Match   OfpMatch /* Fields to match. */
 	TableID uint8    /* ID of table to read (from ofp_table_stats) 0xff for all tables or 0xfe for emergency. */
-	//uint8_t pad;              /* Align to 32 bits. */
-	OutPort uint16 /* Require matching entries to include this as an output port.  A value of OFPP_NONE
+	Padding byte     /* Align to 32 bits. */
+	OutPort uint16   /* Require matching entries to include this as an output port.  A value of OFPP_NONE
 	   indicates no restriction. */
 }
 
 // OfpAggStatsReply represents the structure body of reply to OFPST_AGGREGATE request. */
 type OfpAggStatsReply struct {
-	PacketCount uint64 /* Number of packets in flows. */
-	ByteCount   uint64 /* Number of bytes in flows. */
-	FlowCount   uint32 /* Number of flows. */
-	//uint8_t pad[4];           /* Align to 64 bits. */
+	PacketCount uint64  /* Number of packets in flows. */
+	ByteCount   uint64  /* Number of bytes in flows. */
+	FlowCount   uint32  /* Number of flows. */
+	Padding     [4]byte /* Align to 64 bits. */
 }
 
 // OfpTableStats represents the structure body of reply to OFPST_TABLE request.
 type OfpTableStats struct {
-	TableID uint8 // Identifier of table.  Lower numbered tables are consulted first.
-	//uint8_t pad[3];          /* Align to 32-bits. */
+	TableID      uint8   // Identifier of table.  Lower numbered tables are consulted first.
+	Padding      [3]byte /* Align to 32-bits. */
 	Name         [32]byte
 	WildCards    uint32 /* Bitmap of OFPFW_* wildcards that are supported by the table. */
 	MaxEntries   uint32 /* Max number of entries supported. */
@@ -139,22 +139,22 @@ type OfpPortStatsRequest struct {
 	// either for a single port (specified in
 	// port_no) or for all ports (if port_no ==
 	// OFPP_NONE).
-	PortNo uint16
-	//uint8_t pad[6];
+	PortNo  uint16
+	Padding [6]byte
 }
 
 // OfpPortStats represents the structure body of reply to OFPST_PORT request. If a counter is unsupported, set
 // the field to all ones.
 type OfpPortStats struct {
-	PortNo uint16
-	//uint8_t pad[6];          /* Align to 64-bits. */
-	RxPackets uint64 /* Number of received packets. */
-	TxPackets uint64 /* Number of transmitted packets. */
-	RxBytes   uint64 /* Number of received bytes. */
-	TxBytes   uint64 /* Number of transmitted bytes. */
-	RxDropped uint64 /* Number of packets dropped by RX. */
-	TxDropped uint64 /* Number of packets dropped by TX. */
-	RxErrors  uint64 /* Number of receive errors.  This is a super-set
+	PortNo    uint16
+	Padding   [6]byte /* Align to 64-bits. */
+	RxPackets uint64  /* Number of received packets. */
+	TxPackets uint64  /* Number of transmitted packets. */
+	RxBytes   uint64  /* Number of received bytes. */
+	TxBytes   uint64  /* Number of transmitted bytes. */
+	RxDropped uint64  /* Number of packets dropped by RX. */
+	TxDropped uint64  /* Number of packets dropped by TX. */
+	RxErrors  uint64  /* Number of receive errors.  This is a super-set
 	   of more specific receive errors and should be
 	   greater than or equal to the sum of all
 	   rx_*_err values. */
@@ -180,17 +180,17 @@ type OfpVendorHeader struct {
 
 // OfpQueueStatsReq represents the ofp queue stats query structure
 type OfpQueueStatsReq struct {
-	PortNo uint16 /* All ports if OFPT_ALL. */
-	//uint8_t pad[2];          /* Align to 32-bits. */
-	QueueID uint32 /* All queues if OFPQ_ALL. */
+	PortNo  uint16  /* All ports if OFPT_ALL. */
+	Padding [2]byte /* Align to 32-bits. */
+	QueueID uint32  /* All queues if OFPQ_ALL. */
 }
 
 // OfpQueueStatsInfo represents the queue stats info
 type OfpQueueStatsInfo struct {
-	PortNo uint16
-	//uint8_t pad[2];          /* Align to 32-bits. */
-	QueueID   uint32 /* Queue i.d */
-	TxBytes   uint64 /* Number of transmitted bytes. */
-	TxPackets uint64 /* Number of transmitted packets. */
-	TxErrors  uint64 /* Number of packets dropped due to overrun. */
+	PortNo    uint16
+	Padding   [2]byte /* Align to 32-bits. */
+	QueueID   uint32  /* Queue i.d */
+	TxBytes   uint64  /* Number of transmitted bytes. */
+	TxPackets uint64  /* Number of transmitted packets. */
+	TxErrors  uint64  /* Number of packets dropped due to overrun. */
 }

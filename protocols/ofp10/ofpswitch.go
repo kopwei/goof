@@ -13,7 +13,7 @@ type OfpSwitchFeatureMsg struct {
 
 	NoOfTables uint8 /* Number of tables supported by datapath. */
 
-	//uint8_t pad[3];         /* Align to 64-bits. */
+	Padding [3]byte /* Align to 64-bits. */
 
 	/* Features. */
 	Capabilities uint32 /* Bitmap of support "ofp_capabilities". */
