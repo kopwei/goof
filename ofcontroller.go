@@ -1,5 +1,12 @@
 package goof
 
+import (
+	"fmt"
+	"log"
+	"net"
+	"strings"
+)
+
 // OfpPacketInMsg is the interface for the openflow package
 type OfpPacketInMsg interface{}
 
@@ -17,18 +24,30 @@ type OFApplication interface {
 
 // StartController will start a tcp listener
 func StartController(portNo int) {
-	// listen on all interfaces
-	//ln, _ := net.Listen("tcp", fmt.Sprintf(":%d", portNo))
+	portNoStr := fmt.Sprintf("%d", portNo)
+	addr, _ := net.ResolveTCPAddr("tcp", portNoStr)
 
-	// accept connection on port
-	//conn, _ := ln.Accept()
+	var err error
+	listener, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// run loop forever (or until ctrl-c)
+	defer listener.Close()
+
+	log.Println("Listening for connections on", addr)
 	for {
-		// will listen for message to process ending in newline (\n)
-		//message, _ := bufio.NewReader(conn)
-		//go handleMessage(message)
+		conn, err := listener.AcceptTCP()
+		if err != nil {
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
+			}
+			log.Fatal(err)
+		}
+		go handleConnection(conn)
 	}
 }
 
-func handleMessage() {}
+func handleConnection(conn net.Conn) {
+
+}
