@@ -2,7 +2,7 @@ package ofp15
 
 const (
 	// Version is the value of version byte in ofp header
-	Version = 0x06
+	Version = uint8(0x06)
 )
 
 // The OFP Type constants

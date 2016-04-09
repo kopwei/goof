@@ -2,5 +2,5 @@ package ofp13
 
 const (
 	// Version is the value of version byte in ofp header
-	Version = 0x04
+	Version = uint8(0x04)
 )
