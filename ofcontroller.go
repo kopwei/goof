@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 	"strings"
+
+	"github.com/kopwei/goof/protocols/ofpgeneral"
 )
 
 // OfpPacketInMsg is the interface for the openflow package
@@ -22,8 +24,24 @@ type OFApplication interface {
 	PacketRcvd(sw *OpenflowSwitch, msg OfpPacketInMsg)
 }
 
-// StartController will start a tcp listener
-func StartController(portNo int) {
+// OfpController represents the openflow controller structure
+type OfpController interface {
+	StartListen(portNo int)
+}
+
+type ofpControllerImpl struct {
+	bridges []OpenflowSwitch
+}
+
+// NewOfpController creates a new openflow controller
+func NewOfpController() (OfpController, error) {
+	ctrler := &ofpControllerImpl{}
+	ctrler.bridges = make([]OpenflowSwitch, 0)
+	return ctrler, nil
+}
+
+// StartListen will start a tcp listener
+func (oc *ofpControllerImpl) StartListen(portNo int) {
 	portNoStr := fmt.Sprintf("%d", portNo)
 	addr, _ := net.ResolveTCPAddr("tcp", portNoStr)
 
@@ -49,5 +67,14 @@ func StartController(portNo int) {
 }
 
 func handleConnection(conn net.Conn) {
+	msgStream := ofpgeneral.NewOfpMsgStream(conn)
+	for {
+		select {
+		case msg := <-msgStream.Incomming:
+			switch m := msg.(type) {
 
+			}
+		}
+
+	}
 }
