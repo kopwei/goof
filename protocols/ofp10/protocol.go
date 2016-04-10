@@ -273,3 +273,17 @@ func (em *OfpErrMsg) UnmarshalBinary(data []byte) error {
 	copy(em.Data, data[8:])
 	return nil
 }
+
+// ParseMsg is the function which parses the message
+func ParseMsg(b []byte) (ofpgeneral.OfpMessage, error) {
+	var msg ofpgeneral.OfpMessage
+	var err error
+	switch b[1] {
+	case OfpTypeHello:
+		msg = &OfpHelloMsg{}
+		err = msg.UnmarshalBinary(b)
+
+	}
+
+	return msg, err
+}
