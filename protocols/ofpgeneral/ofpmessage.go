@@ -2,9 +2,10 @@ package ofpgeneral
 
 import (
 	"bytes"
-	"io"
+	"encoding/binary"
 	"log"
 	"net"
+	"strings"
 )
 
 const (
@@ -79,19 +80,47 @@ func (mt *OfpMessageTunnel) sendMessage() {
 }
 
 func (mt *OfpMessageTunnel) receiveMessage() {
-	msg := bytes.NewBuffer(nil)
-	msgbuf := make([]byte, 2048)
+	msg := 0
+	hdr := 0
+	hdrBuf := make([]byte, 4)
+
+	tmp := make([]byte, 2048)
+	buf := <-mt.pool.empty
 	for {
-		n, err := mt.conn.Read(msgbuf)
-		msg.Write(msgbuf[0:n])
+		n, err := mt.conn.Read(tmp)
 		if err != nil {
-			if err == io.EOF {
-				break
+			// Handle explicitly disconnecting by closing connection
+			if strings.Contains(err.Error(), "use of closed network connection") {
+				return
 			}
-			log.Printf("Error in receiving the msg, %s", err.Error())
+			//log.Warnln("InboundError", err)
+			//m.Error <- err
+			//m.Shutdown <- true
+			return
+		}
+
+		for i := 0; i < n; i++ {
+			if hdr < 4 {
+				hdrBuf[hdr] = tmp[i]
+				buf.WriteByte(tmp[i])
+				hdr++
+				if hdr >= 4 {
+					msg = int(binary.BigEndian.Uint16(hdrBuf[2:])) - 4
+				}
+				continue
+			}
+			if msg > 0 {
+				buf.WriteByte(tmp[i])
+				msg = msg - 1
+				if msg == 0 {
+					hdr = 0
+					mt.pool.full <- buf
+					buf = <-mt.pool.empty
+				}
+				continue
+			}
 		}
 	}
-	msg.Reset()
 }
 
 func (mt *OfpMessageTunnel) parseWorker() {
