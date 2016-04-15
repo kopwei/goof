@@ -2,8 +2,21 @@ package ofpgeneral
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
+
+// GetMessageVersion is used to retrive the version of the msg
+func GetMessageVersion(msg []byte) (uint8, error) {
+	if len(msg) < 4 {
+		return 0, fmt.Errorf("The message length %d is smaller than minimum length", len(msg))
+	}
+	header := &OfpHeader{}
+	if err := header.UnmarshalBinary(msg); err != nil {
+		return 0, fmt.Errorf("Version retrival failed due to %s", err.Error())
+	}
+	return header.Version, nil
+}
 
 // UnMarshalFields is used to read the fields value from reader
 func UnMarshalFields(reader io.Reader, fields ...interface{}) error {

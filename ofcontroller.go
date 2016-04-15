@@ -5,8 +5,6 @@ import (
 	"log"
 	"net"
 	"strings"
-
-	"github.com/kopwei/goof/protocols/ofpgeneral"
 )
 
 // OfpPacketInMsg is the interface for the openflow package
@@ -67,7 +65,7 @@ func (oc *ofpControllerImpl) StartListen(portNo int) {
 }
 
 func handleConnection(conn net.Conn) {
-	msgStream := ofpgeneral.NewOfpMsgStream(conn)
+	msgStream := NewOfpMsgTunnel(conn)
 	for {
 		select {
 		case msg := <-msgStream.Incomming:
