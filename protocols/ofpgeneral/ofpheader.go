@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"sync"
 )
+
+var messageXid uint32 = 1
+var xidLock = sync.RWMutex{}
 
 // OfpHeader is used to describe the header of OpenFlow message
 // Each OpenFlow message begins with the OpenFlow header
@@ -21,8 +25,11 @@ type OfpHeader struct {
 }
 
 // NewOfpHeader creates a reference to a ofp header struct
-func NewOfpHeader() *OfpHeader {
-	return &OfpHeader{}
+func NewOfpHeader(version uint8) *OfpHeader {
+	xidLock.Lock()
+	defer xidLock.Unlock()
+	messageXid++
+	return &OfpHeader{Version: version, Xid: messageXid}
 }
 
 // UnmarshalBinary transforms the byte array into header data

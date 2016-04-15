@@ -5,6 +5,9 @@ import (
 	"log"
 	"net"
 	"strings"
+
+	"github.com/kopwei/goof/protocols/ofp15"
+	"github.com/kopwei/goof/protocols/ofpgeneral"
 )
 
 // OfpPacketInMsg is the interface for the openflow package
@@ -66,13 +69,29 @@ func (oc *ofpControllerImpl) StartListen(portNo int) {
 
 func handleConnection(conn net.Conn) {
 	msgStream := NewOfpMsgTunnel(conn)
+	hello := ofpgeneral.NewHelloMsg(4)
+	msgStream.Outgoing <- hello
 	for {
 		select {
 		case msg := <-msgStream.Incomming:
 			switch m := msg.(type) {
-
+			case *ofpgeneral.OfpHelloMsg:
+				version, _ := ofpgeneral.GetOfpMsgVersion(m)
+				if isVersionValid(version) {
+					msgStream.Version = version
+					msgStream.SendFeatureRequest()
+				} else {
+					// Connection should be severed if controller
+					// doesn't support switch version.
+					log.Println("Received unsupported ofp version", version)
+					msgStream.Shutdown <- true
+				}
 			}
 		}
 
 	}
+}
+
+func isVersionValid(v uint8) bool {
+	return v > 0 && v < ofp15.Version
 }

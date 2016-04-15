@@ -53,6 +53,8 @@ type OfpMessageTunnel struct {
 	Incomming chan ofpgeneral.OfpMessage
 	Outgoing  chan ofpgeneral.OfpMessage
 	MsgParser MessageParser
+	// Channel on which to receive a shutdown command
+	Shutdown chan bool
 }
 
 // NewOfpMsgTunnel return the message stream
@@ -69,6 +71,16 @@ func NewOfpMsgTunnel(con net.Conn) *OfpMessageTunnel {
 		go msgTunnel.parseWorker()
 	}
 	return msgTunnel
+}
+
+// SendFeatureRequest is used to send the feature request message to datapath
+func (mt *OfpMessageTunnel) SendFeatureRequest() {
+	header := ofpgeneral.NewOfpHeader(mt.Version)
+	switch mt.Version {
+	case ofp10.Version:
+		header.Type = ofp10.OfpTypeFeaturesRequest
+	}
+	mt.Outgoing <- header
 }
 
 func (mt *OfpMessageTunnel) sendMessage() {

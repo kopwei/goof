@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// GetMessageVersion is used to retrive the version of the msg
+// GetMessageVersion is used to retrive the version of the msg from byte slice
 func GetMessageVersion(msg []byte) (uint8, error) {
 	if len(msg) < 4 {
 		return 0, fmt.Errorf("The message length %d is smaller than minimum length", len(msg))
@@ -16,6 +16,15 @@ func GetMessageVersion(msg []byte) (uint8, error) {
 		return 0, fmt.Errorf("Version retrival failed due to %s", err.Error())
 	}
 	return header.Version, nil
+}
+
+// GetOfpMsgVersion is used to retrieve the version info of the ofp messge
+func GetOfpMsgVersion(msg OfpMessage) (uint8, error) {
+	b, err := msg.MarshalBinary()
+	if err != nil {
+		return 0, err
+	}
+	return GetMessageVersion(b)
 }
 
 // UnMarshalFields is used to read the fields value from reader
