@@ -30,6 +30,8 @@ type OpenflowSwitch interface {
 	DoesSupportOFVer(ofpversion uint8) bool
 }
 
-func NewSwitch(tunnel *OfpMessageTunnel, msg *ofp10.OfpSwitchFeatureMsg) {
-
+// NewSwitch generates a new switch object
+func NewSwitch(tunnel *OfpMessageTunnel, msg *ofp10.OfpSwitchFeatureMsg) OpenflowSwitch {
+	// TODO
+	return nil
 }
