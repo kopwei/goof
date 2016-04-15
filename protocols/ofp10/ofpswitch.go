@@ -1,6 +1,11 @@
 package ofp10
 
-import "github.com/kopwei/goof/protocols/ofpgeneral"
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/kopwei/goof/protocols/ofpgeneral"
+)
 
 // OfpSwitchFeatureMsg represents the switch feature message structure
 type OfpSwitchFeatureMsg struct {
@@ -23,6 +28,26 @@ type OfpSwitchFeatureMsg struct {
 	Ports []OfpPhysPort /* Port definitions.  The number of ports
 	   is inferred from the length field in
 	   the header. */
+}
+
+// UnmarshalBinary transforms the byte array into header data
+func (sf *OfpSwitchFeatureMsg) UnmarshalBinary(data []byte) error {
+	if len(data) < 28 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &sf.Header, &sf.DatapathID, &sf.NoOfBuffers,
+		&sf.NoOfTables, &sf.Padding, &sf.Capabilities, &sf.Actions, &sf.Ports)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (sf *OfpSwitchFeatureMsg) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, sf.Header, sf.DatapathID, sf.NoOfBuffers,
+		sf.NoOfTables, sf.Padding, sf.Capabilities, sf.Actions, sf.Ports); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // OfpSwitchConfigMsg represents the switch config msg structure

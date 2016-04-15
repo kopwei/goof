@@ -3,6 +3,8 @@ package goof
 import (
 	"encoding/binary"
 	"net"
+
+	"github.com/kopwei/goof/protocols/ofp10"
 )
 
 // DatapathID represents the datapath object
@@ -26,4 +28,8 @@ func (dpid *DatapathID) GetHwAddr() net.HardwareAddr {
 type OpenflowSwitch interface {
 	GetDatapathID() *DatapathID
 	DoesSupportOFVer(ofpversion uint8) bool
+}
+
+func NewSwitch(tunnel *OfpMessageTunnel, msg *ofp10.OfpSwitchFeatureMsg) {
+
 }

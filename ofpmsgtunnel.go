@@ -112,7 +112,6 @@ func (mt *OfpMessageTunnel) receiveMessage() {
 			//m.Shutdown <- true
 			return
 		}
-
 		for i := 0; i < n; i++ {
 			if hdr < 4 {
 				hdrBuf[hdr] = tmp[i]

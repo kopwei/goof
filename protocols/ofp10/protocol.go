@@ -222,50 +222,13 @@ func (out *OfpPacketOutMsg) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// OfpErrMsg represents the msg structure of OFPT_ERROR: Error message (datapath -> controller).
-type OfpErrMsg struct {
-	Header ofpgeneral.OfpHeader
-
-	Type uint16
-	Code uint16
-	Data []byte /* Variable-length data.  Interpreted based on the type and code. */
-}
-
-// MarshalBinary converts the packet in msg fields into byte array
-func (em *OfpErrMsg) MarshalBinary() ([]byte, error) {
-	data := make([]byte, em.Header.Length)
-	headerData, err := (&em.Header).MarshalBinary()
-	copy(data, headerData)
-	buf := new(bytes.Buffer)
-	err = ofpgeneral.MarshalFields(buf, em.Type, em.Code)
-	if err != nil {
-		return nil, err
-	}
-	copy(data[4:8], buf.Bytes())
-	copy(data[8:], em.Data)
-	return data, err
-}
-
-// UnmarshalBinary transforms the byte array into packet in message data
-func (em *OfpErrMsg) UnmarshalBinary(data []byte) error {
-	if err := (&em.Header).UnmarshalBinary(data); err != nil {
-		return err
-	}
-	buf := bytes.NewReader(data[4:8])
-	if err := ofpgeneral.UnMarshalFields(buf, &em.Type, &em.Code); err != nil {
-		return err
-	}
-	copy(em.Data, data[8:])
-	return nil
-}
-
 // ParseMsg is the function which parses the message
 func ParseMsg(b []byte) (ofpgeneral.OfpMessage, error) {
 	var msg ofpgeneral.OfpMessage
 	var err error
 	switch b[1] {
 	case OfpTypeHello:
-		msg = &OfpHelloMsg{}
+		msg = &ofpgeneral.OfpHelloMsg{}
 		err = msg.UnmarshalBinary(b)
 
 	}

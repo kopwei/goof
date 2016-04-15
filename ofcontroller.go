@@ -2,10 +2,12 @@ package goof
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
+
+	"github.com/kopwei/goof/protocols/ofp10"
 	"github.com/kopwei/goof/protocols/ofp15"
 	"github.com/kopwei/goof/protocols/ofpgeneral"
 )
@@ -86,6 +88,24 @@ func handleConnection(conn net.Conn) {
 					log.Println("Received unsupported ofp version", version)
 					msgStream.Shutdown <- true
 				}
+
+			// After a vaild FeaturesReply has been received we
+			// have all the information we need. Create a new
+			// switch object and notify applications.
+			case *ofp10.OfpSwitchFeatureMsg:
+				log.Printf("Received ofp1.0 Switch feature response: %+v", *m)
+
+				// Create a new switch and handover the stream
+				NewSwitch(msgStream, m)
+
+				// Let switch instance handle all future messages..
+				return
+
+			// An error message may indicate a version mismatch. We
+			// disconnect if an error occurs this early.
+			case *ofpgeneral.OfpErrMsg:
+				log.Warnf("Received  error msg: %+v", *m)
+				msgStream.Shutdown <- true
 			}
 		}
 
