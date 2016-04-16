@@ -53,7 +53,25 @@ func (sf *OfpSwitchFeatureMsg) MarshalBinary() ([]byte, error) {
 // OfpSwitchConfigMsg represents the switch config msg structure
 type OfpSwitchConfigMsg struct {
 	Header      ofpgeneral.OfpHeader
-	flags       uint16 /* OfpConf* flags. */
+	Flags       uint16 /* OfpConf* flags. */
 	MissSendLen uint16 /* Max bytes of new flow that datapath should
 	   send to the controller. */
+}
+
+// UnmarshalBinary transforms the byte array into header data
+func (sc *OfpSwitchConfigMsg) UnmarshalBinary(data []byte) error {
+	if len(data) < 8 {
+		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
+	}
+	buf := bytes.NewReader(data)
+	return ofpgeneral.UnMarshalFields(buf, &sc.Header, &sc.Flags, &sc.MissSendLen)
+}
+
+// MarshalBinary converts the header fields into byte array
+func (sc *OfpSwitchConfigMsg) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := ofpgeneral.MarshalFields(buf, sc.Header, sc.Flags, sc.MissSendLen); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
