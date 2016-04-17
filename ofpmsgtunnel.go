@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"net"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/kopwei/goof/protocols/ofp10"
 	"github.com/kopwei/goof/protocols/ofp11"
@@ -109,9 +110,9 @@ func (mt *OfpMessageTunnel) receiveMessage() {
 			if strings.Contains(err.Error(), "use of closed network connection") {
 				return
 			}
-			//log.Warnln("InboundError", err)
-			//m.Error <- err
-			//m.Shutdown <- true
+			log.Warnln("InboundError", err)
+			mt.Error <- err
+			mt.Shutdown <- true
 			return
 		}
 		for i := 0; i < n; i++ {
