@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -107,8 +108,17 @@ func handleConnection(conn net.Conn) {
 				log.Warnf("Received  error msg: %+v", *m)
 				msgStream.Shutdown <- true
 			}
+		case err := <-msgStream.Error:
+			// The connection has been shutdown.
+			log.Println(err)
+			return
+		case <-time.After(time.Second * 3):
+			// This shouldn't happen. If it does, both the controller
+			// and switch are no longer communicating. The TCPConn is
+			// still established though.
+			log.Warnln("Connection timed out.")
+			return
 		}
-
 	}
 }
 

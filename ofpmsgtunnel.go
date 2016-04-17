@@ -55,6 +55,8 @@ type OfpMessageTunnel struct {
 	MsgParser MessageParser
 	// Channel on which to receive a shutdown command
 	Shutdown chan bool
+	// Channel on which to publish connection errors
+	Error chan error
 }
 
 // NewOfpMsgTunnel return the message stream
