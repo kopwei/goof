@@ -46,10 +46,11 @@ func NewOfpController() (OfpController, error) {
 
 // StartListen will start a tcp listener
 func (oc *ofpControllerImpl) StartListen(portNo int) {
-	portNoStr := fmt.Sprintf("%d", portNo)
-	addr, _ := net.ResolveTCPAddr("tcp", portNoStr)
-
-	var err error
+	portNoStr := fmt.Sprintf(":%d", portNo)
+	addr, err := net.ResolveTCPAddr("tcp", portNoStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
 		log.Fatal(err)
