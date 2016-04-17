@@ -80,6 +80,7 @@ func handleConnection(conn net.Conn) {
 		case msg := <-msgStream.Incomming:
 			switch m := msg.(type) {
 			case *ofpgeneral.OfpHelloMsg:
+				log.Debugf("Hello message %+v is received", m)
 				version, _ := ofpgeneral.GetOfpMsgVersion(m)
 				if isVersionValid(version) {
 					msgStream.Version = version
