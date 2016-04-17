@@ -82,6 +82,8 @@ func (mt *OfpMessageTunnel) SendFeatureRequest() {
 	switch mt.Version {
 	case ofp10.Version:
 		header.Type = ofp10.OfpTypeFeaturesRequest
+	case ofp13.Version:
+		header.Type = ofp13.OfpTypeFeaturesRequest
 	}
 	mt.Outgoing <- header
 }
