@@ -71,7 +71,7 @@ func (oc *ofpControllerImpl) StartListen(portNo int) {
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn *net.TCPConn) {
 	msgStream := NewOfpMsgTunnel(conn)
 	hello := ofpgeneral.NewHelloMsg(4)
 	msgStream.Outgoing <- hello

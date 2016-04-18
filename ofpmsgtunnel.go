@@ -47,7 +47,7 @@ type MessageParser interface {
 // OfpMessageTunnel is the tunnel of messages in one tcp connection
 // between the openflow controller and datapath
 type OfpMessageTunnel struct {
-	conn net.Conn
+	conn *net.TCPConn
 	pool *ofpBufferPool
 	// Openflow Version
 	Version   uint8
@@ -61,7 +61,7 @@ type OfpMessageTunnel struct {
 }
 
 // NewOfpMsgTunnel return the message stream
-func NewOfpMsgTunnel(con net.Conn) *OfpMessageTunnel {
+func NewOfpMsgTunnel(con *net.TCPConn) *OfpMessageTunnel {
 
 	msgTunnel := &OfpMessageTunnel{conn: con}
 	msgTunnel.Incomming = make(chan ofpgeneral.OfpMessage)
