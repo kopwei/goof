@@ -98,6 +98,11 @@ type OfpMatch struct {
 	TPDst    uint16  /* TCP/UDP destination port. */
 }
 
+// Len returns the length of the struct message
+func (om *OfpMatch) Len() uint16 {
+	return 40
+}
+
 // UnmarshalBinary transforms the byte array into body data
 func (om *OfpMatch) UnmarshalBinary(data []byte) error {
 	if len(data) < 40 {
@@ -159,15 +164,15 @@ func (mfm *OfpModFlowMsg) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	copy(data[4:], matchData)
+	copy(data[8:], matchData)
 	buf := new(bytes.Buffer)
 	err = ofpgeneral.MarshalFields(buf, mfm.Command, mfm.IdleTimeout,
 		mfm.HardTimeout, mfm.Priority, mfm.BufferID, mfm.OutPort, mfm.Flags)
 	if err != nil {
 		return nil, err
 	}
-	copy(data[44:], buf.Bytes())
-	actionByteIdx := uint16(68)
+	copy(data[48:], buf.Bytes())
+	actionByteIdx := uint16(72)
 	for _, action := range mfm.Actions {
 		actionData, err := action.MarshalBinary()
 		if err != nil {
@@ -213,20 +218,25 @@ type OfpFlowRemovedMsg struct {
 
 	Priority uint16 /* Priority level of flow entry. */
 	Reason   uint8  /* One of OFPRR_*. */
-	//uint8_t pad[1];           /* Align to 32-bits. */
+	Padding1 byte   /* Align to 32-bits. */
 
 	DurationSec     uint32 /* Time flow was alive in seconds. */
 	DurationNanoSec uint32 /* Time flow was alive in nanoseconds beyond
 	   duration_sec. */
-	IdleTimeout uint16 /* Idle timeout from original flow mod. */
-	//uint8_t pad2[2];          /* Align to 64-bits. */
+	IdleTimeout uint16  /* Idle timeout from original flow mod. */
+	Padding2    [2]byte /* Align to 64-bits. */
 	PacketCount uint64
 	ByteCount   uint64
 }
 
+// Len returns the length of the struct message
+func (frm *OfpFlowRemovedMsg) Len() uint16 {
+	return 88
+}
+
 // UnmarshalBinary transforms the byte array into header data
 func (frm *OfpFlowRemovedMsg) UnmarshalBinary(data []byte) error {
-	if len(data) < 82 {
+	if len(data) < 88 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 

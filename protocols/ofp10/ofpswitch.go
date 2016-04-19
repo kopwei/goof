@@ -32,7 +32,7 @@ type OfpSwitchFeatureMsg struct {
 
 // UnmarshalBinary transforms the byte array into header data
 func (sf *OfpSwitchFeatureMsg) UnmarshalBinary(data []byte) error {
-	if len(data) < 28 {
+	if len(data) < 32 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 	buf := bytes.NewReader(data)
@@ -60,7 +60,7 @@ type OfpSwitchConfigMsg struct {
 
 // UnmarshalBinary transforms the byte array into header data
 func (sc *OfpSwitchConfigMsg) UnmarshalBinary(data []byte) error {
-	if len(data) < 8 {
+	if len(data) < 12 {
 		return fmt.Errorf("The data size %d is not big enough to be decoded", len(data))
 	}
 	buf := bytes.NewReader(data)

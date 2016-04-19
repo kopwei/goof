@@ -49,8 +49,8 @@ func (em *OfpErrMsg) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	copy(data[4:8], buf.Bytes())
-	copy(data[8:], em.Data)
+	copy(data[8:12], buf.Bytes())
+	copy(data[12:], em.Data)
 	return data, err
 }
 
@@ -59,10 +59,10 @@ func (em *OfpErrMsg) UnmarshalBinary(data []byte) error {
 	if err := (&em.Header).UnmarshalBinary(data); err != nil {
 		return err
 	}
-	buf := bytes.NewReader(data[4:8])
+	buf := bytes.NewReader(data[8:12])
 	if err := UnMarshalFields(buf, &em.Type, &em.Code); err != nil {
 		return err
 	}
-	copy(em.Data, data[8:])
+	copy(em.Data, data[12:])
 	return nil
 }

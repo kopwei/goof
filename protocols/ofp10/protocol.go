@@ -146,8 +146,8 @@ func (in *OfpPacketInMsg) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	copy(data[4:16], buf.Bytes())
-	copy(data[16:], in.Data)
+	copy(data[8:18], buf.Bytes())
+	copy(data[18:], in.Data)
 	return data, err
 }
 
@@ -156,11 +156,11 @@ func (in *OfpPacketInMsg) UnmarshalBinary(data []byte) error {
 	if err := (&in.Header).UnmarshalBinary(data); err != nil {
 		return err
 	}
-	buf := bytes.NewReader(data[4:14])
+	buf := bytes.NewReader(data[8:18])
 	if err := ofpgeneral.UnMarshalFields(buf, &in.BufferID, &in.TotalLen, &in.InPort, &in.Reason, &in.Padding); err != nil {
 		return err
 	}
-	copy(in.Data, data[14:])
+	copy(in.Data, data[18:])
 	return nil
 }
 
@@ -190,7 +190,7 @@ func (out *OfpPacketOutMsg) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	copy(data[4:16], buf.Bytes())
+	copy(data[8:16], buf.Bytes())
 	actionByteIdx := uint16(16)
 	for _, action := range out.Actions {
 		actionData, err := action.MarshalBinary()
@@ -208,7 +208,7 @@ func (out *OfpPacketOutMsg) UnmarshalBinary(data []byte) error {
 	if err := (&out.Header).UnmarshalBinary(data); err != nil {
 		return err
 	}
-	buf := bytes.NewReader(data[4:16])
+	buf := bytes.NewReader(data[8:16])
 	if err := ofpgeneral.UnMarshalFields(buf, &out.BufferID, &out.InPort, &out.ActionsLen); err != nil {
 		return err
 	}
