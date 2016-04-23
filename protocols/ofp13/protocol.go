@@ -72,6 +72,18 @@ const (
 	/* Queue Configuration messages. */
 	OfpTypeQueueGetConfigRequest /* Controller/switch message */
 	OfpTypeQueueGetConfigReply   /* Controller/switch message */
+
+	/* Controller role change request messages. */
+	OfpTypeRoleRequest /* Controller/switch message */
+	OfpTypeRoleReply   /* Controller/switch message */
+
+	/* Asynchronous message configuration. */
+	OfpTypeGetAsyncRequest /* Controller/switch message */
+	OfpTypeGetAsyncReply   /* Controller/switch message */
+	OfpTypeSetAsync        /* Controller/switch message */
+
+	/* Meters and rate limiters configuration messages. */
+	OfpTypeMeterMod /* Controller/switch message */
 )
 
 // Values for 'type' in ofp_error_message.  These values are immutable: they
