@@ -1,7 +1,6 @@
 {
 	"ImportPath": "github.com/kopwei/goof",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v62",
 	"Packages": [
 		"./..."
 	],
